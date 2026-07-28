@@ -112,8 +112,8 @@ query = final_prompt+user_details
 
 import base64
 
-if st.button('generate resume'):
-  with st.spinner("runnign agent"):
+if st.button('Generate Resume'):
+  with st.spinner("running agent"):
 
     response = agent.invoke({'messages': [{'role':'user','content':query}]})
     print(response['messages'][-1].content)
