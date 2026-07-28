@@ -127,24 +127,3 @@ if st.button('Generate Resume'):
         code = code.replace("PROFILE_IMAGE_PLACEHOLDER", data_uri)
 
     st.html(code , width="stretch" , unsafe_allow_javascript=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
