@@ -5,7 +5,7 @@ st.title("AI Resume Maker")
 st.markdown("""## User can create or
 download AI created Resume based on high ATS 
 Score""")
-#============AGENT CODE===============
+#========================AGENT CODE=======================
 import os
 import time
 import langchain
@@ -18,11 +18,17 @@ from langchain.messages import SystemMessage,HumanMessage
 import numpy as np
 import streamlit as st
 from langchain_community.document_loaders import PyMuPDFLoader
-#================AI KEY LOAD================
+#========================AI KEY LOAD=========================
 GOOGLE_API_KEY= st.sidebar.text_input("GOOGLE_API_KEY",type="password")
 GROQ_API_KEY= st.sidebar.text_input("GROQ_API_KEY",type="password")
 TAVILY_API_KEY= st.sidebar.text_input("TAVILY_API_KEY",type="password")
-#===============MODEL BUILDING==========
+
+if not(GOOGLE_API_KEY) and not (GROQ_API_KEY) and not (TAVILY_API_KEY):
+    st.sidebar.warning("PASS API KEYS")
+    st.stop()
+else:
+    st.success("API KEYS LOADED")
+#========================MODEL BUILDING==================
 model=ChatGoogleGenerativeAI(
     model='gemini-3.5-flash-lite',
     google_api_key=GOOGLE_API_KEY
@@ -45,7 +51,7 @@ agent=create_agent(
     model=model,
     tools=[search_recent_news_jobs]
 )
-#========PROMPT GENERATOR===
+#===============PROMPT GENERATOR=================
 def prompt_generator(agent):
     """This function help to give detailed prompt
     followed by Chain of thoughts and
@@ -75,7 +81,32 @@ def resume_maker_prompt():
     prompt= f.read()
   return prompt
 resume_maker_prompt()
-#=====GENERATE RESUME========
+
+# ================= UPLOAD IMAGE =================
+uploaded_file = st.sidebar.file_uploader(
+    "Choose an image file",
+    type=["jpg", "jpeg", "png", "webp"]
+)
+
+if uploaded_file is not None:
+    try:
+        image = Image.open(uploaded_file)
+
+        st.sidebar.image(image, caption="Uploaded Image", use_container_width=True)
+
+        if image.mode in ("RGBA", "P"):
+            image = image.convert("RGB")
+        base_name = os.path.splitext(uploaded_file.name)[0]
+        save_path = f"{base_name}.jpg"
+
+        # 3. Save the image to the current working directory
+        image.save(save_path, "JPEG")
+        st.sidebar.success(f"🎉 Image successfully saved as `{save_path}`!")
+
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+
+#==============GENERATE RESUME=================
 prompt = """You are a helpful AI assistant
 with job resume maker, your task is to give
 HTML format resume, with proper designing using recent CSS and JS
@@ -83,9 +114,16 @@ code, with professional design Format.
 User will upload data and return HTML format resume"""
 final_prompt = prompt + resume_maker_prompt()
 
-user_details = """My name is Ruchika I am pursuing BCA and
-i am a second year student at IITM janakpuri affilated from GGSIPU
- i have completed my X and XII class with CBSE Board"""
+user_info= st.text_input("Enter your information")
+
+user_details = f"""user details: given below:
+Resume info: {user_info}
+Photo: {uploaded_file }
+Photo present in current directory with name as 
+uploaded_file, and once resume generated give
+download button in same html code.
+Default if not given: Give Python Developer Resume"""
+
 query = final_prompt + user_details
 
 if st.button("Generate Resume"):
